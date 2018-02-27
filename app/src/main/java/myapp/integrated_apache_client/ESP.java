@@ -13,6 +13,15 @@ public class ESP implements Serializable {
     int downloadedContentLength=0;
     int maxContentLength=0;
     boolean downloadStarted = false;
+    boolean fileDownloaded = false;
+
+    public boolean isFileDownloaded() {
+        return fileDownloaded;
+    }
+
+    public void setFileDownloaded(boolean fileDownloaded) {
+        this.fileDownloaded = fileDownloaded;
+    }
 
     public int getDownloadedContentLength() {
         return downloadedContentLength;

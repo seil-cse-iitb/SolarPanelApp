@@ -3,7 +3,6 @@ package myapp.integrated_apache_client;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.net.wifi.WifiConfiguration;
@@ -12,7 +11,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.os.PersistableBundle;
 import android.provider.Settings;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -41,7 +39,6 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.lang.reflect.Method;
 import java.net.InetAddress;
@@ -49,10 +46,8 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.GregorianCalendar;
 import java.util.Locale;
 import java.util.Scanner;
-import java.util.TimeZone;
 
 public class MainActivity extends AppCompatActivity {
     static ArrayList<ESP> espConnected;
@@ -134,12 +129,14 @@ public class MainActivity extends AppCompatActivity {
             public View getView(final int position, View convertView, ViewGroup parent) {
                 convertView = getLayoutInflater().inflate(R.layout.my_list_item, null);
                 ((TextView) convertView.findViewById(R.id.name)).setText(getItem(position).getName());
+                ((TextView) convertView.findViewById(R.id.fileSize)).setText("("+getItem(position).getMaxContentLength()+" bytes)");
 //                ((TextView) convertView.findViewById(R.id.text1)).setText(getItem(position).getIpAddress());
 //                ((TextView) convertView.findViewById(R.id.text2)).setText(getItem(position).getMacAddress());
                 ProgressBar pb = (ProgressBar) convertView.findViewById(R.id.pbDownload);
                 pb.setMax(getItem(position).getMaxContentLength());
                 pb.setProgress(getItem(position).getDownloadedContentLength());
                 Button btnDownload = (Button) convertView.findViewById(R.id.btnDelete);
+
                 btnDownload.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
@@ -250,6 +247,14 @@ public class MainActivity extends AppCompatActivity {
                                             }
                                             if (dynamicName != null) {
                                                 espConnected.get(i).name = dynamicName;
+                                                final int finalI = i;
+                                                if(!espConnected.get(i).isFileDownloaded()) {
+                                                    new Thread(new Runnable() {
+                                                        public void run() {
+                                                            downloadFile(espConnected.get(finalI));
+                                                        }
+                                                    }).start();
+                                                }
                                             }
                                         }
                                         espConnectedTemp.add(espConnected.get(i));
@@ -326,6 +331,7 @@ public class MainActivity extends AppCompatActivity {
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
+
                     ba.notifyDataSetChanged();
                 }
             });
@@ -355,6 +361,7 @@ public class MainActivity extends AppCompatActivity {
                     b.putInt("messageType", FILE_DOWNLOAD);
                     msg.setData(b);
                     handler.sendMessage(msg);
+                    esp.setFileDownloaded(true);
                 } else {
                     Message msg = new Message();
                     Bundle b = new Bundle();
