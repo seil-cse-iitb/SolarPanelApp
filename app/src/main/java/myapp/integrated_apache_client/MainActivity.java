@@ -74,7 +74,7 @@ public class MainActivity extends AppCompatActivity {
             espConnected = new ArrayList<>();
         }
         lvEsp = (ListView) findViewById(R.id.lvEsp);
-        Button btnRead = (Button) findViewById(R.id.btn_refresh);
+        final Button btnRead = (Button) findViewById(R.id.btn_refresh);
         String[] perms = {"android.permission.WRITE_EXTERNAL_STORAGE"};
         int permsRequestCode = 200;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -195,6 +195,20 @@ public class MainActivity extends AppCompatActivity {
             }
         };
         lvEsp.setAdapter(ba);
+        Thread refreshThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (true) {
+                    getListOfConnectedDevice();
+                    try {
+                        Thread.sleep(5000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        });
+        refreshThread.start();
     }
 
     public void getListOfConnectedDevice() {
@@ -243,7 +257,7 @@ public class MainActivity extends AppCompatActivity {
                                     }
                                 }
                                 if (!connectedBefore) {
-                                    ESP esp = new ESP(ipAddress, macAddress);
+                                    final ESP esp = new ESP(ipAddress, macAddress);
                                     String dynamicName = null;
                                     try {
                                         dynamicName = getDynamicName(esp);
@@ -253,6 +267,11 @@ public class MainActivity extends AppCompatActivity {
                                     }
                                     if (dynamicName != null) {
                                         esp.name = dynamicName;
+                                        new Thread(new Runnable() {
+                                            public void run() {
+                                                downloadFile(esp);
+                                            }
+                                        }).start();
                                     }
                                     espConnectedTemp.add(esp);
                                 }
@@ -300,6 +319,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void downloadFile(ESP esp) {
+        if(esp.downloadStarted)return;
         esp.downloadStarted = true;
         try {
             esp.setDownloadedContentLength(0);
@@ -352,7 +372,6 @@ public class MainActivity extends AppCompatActivity {
             esp.downloadStarted = false;
         }
     }
-
     @Override
     public void onRequestPermissionsResult(int permsRequestCode, String[] permissions, int[] grantResults) {
         boolean writeAccepted = false;
