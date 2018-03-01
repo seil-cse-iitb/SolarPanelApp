@@ -10,10 +10,19 @@ public class ESP implements Serializable {
     String ipAddress;
     String macAddress;
     String name;
-    int downloadedContentLength=0;
-    int maxContentLength=0;
+    long downloadedContentLength=0;
+    long maxContentLength=0;
     boolean downloadStarted = false;
     boolean fileDownloaded = false;
+    boolean isDynamicName = false;
+
+    public boolean isDynamicName() {
+        return isDynamicName;
+    }
+
+    public void setDynamicName(boolean dynamicName) {
+        isDynamicName = dynamicName;
+    }
 
     public boolean isFileDownloaded() {
         return fileDownloaded;
@@ -23,19 +32,19 @@ public class ESP implements Serializable {
         this.fileDownloaded = fileDownloaded;
     }
 
-    public int getDownloadedContentLength() {
+    public long getDownloadedContentLength() {
         return downloadedContentLength;
     }
 
-    public void setDownloadedContentLength(int downloadedContentLength) {
+    public void setDownloadedContentLength(long downloadedContentLength) {
         this.downloadedContentLength = downloadedContentLength;
     }
 
-    public int getMaxContentLength() {
+    public long getMaxContentLength() {
         return maxContentLength;
     }
 
-    public void setMaxContentLength(int maxContentLength) {
+    public void setMaxContentLength(long maxContentLength) {
         this.maxContentLength = maxContentLength;
     }
 

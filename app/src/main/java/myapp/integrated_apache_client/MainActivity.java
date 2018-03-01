@@ -129,12 +129,12 @@ public class MainActivity extends AppCompatActivity {
             public View getView(final int position, View convertView, ViewGroup parent) {
                 convertView = getLayoutInflater().inflate(R.layout.my_list_item, null);
                 ((TextView) convertView.findViewById(R.id.name)).setText(getItem(position).getName());
-                ((TextView) convertView.findViewById(R.id.fileSize)).setText("("+getItem(position).getMaxContentLength()+" bytes)");
+                ((TextView) convertView.findViewById(R.id.fileSize)).setText("(" + getItem(position).getMaxContentLength() + " bytes)");
 //                ((TextView) convertView.findViewById(R.id.text1)).setText(getItem(position).getIpAddress());
 //                ((TextView) convertView.findViewById(R.id.text2)).setText(getItem(position).getMacAddress());
                 ProgressBar pb = (ProgressBar) convertView.findViewById(R.id.pbDownload);
-                pb.setMax(getItem(position).getMaxContentLength());
-                pb.setProgress(getItem(position).getDownloadedContentLength());
+                pb.setMax((int)getItem(position).getMaxContentLength());
+                pb.setProgress((int)getItem(position).getDownloadedContentLength());
                 Button btnDownload = (Button) convertView.findViewById(R.id.btnDelete);
 
                 btnDownload.setOnClickListener(new View.OnClickListener() {
@@ -177,11 +177,7 @@ public class MainActivity extends AppCompatActivity {
                     public void onClick(View v) {
                         if (!getItem(position).downloadStarted) {
                             //Download file
-                            new Thread(new Runnable() {
-                                public void run() {
-                                    downloadFile(getItem(position));
-                                }
-                            }).start();
+                            downloadFile(getItem(position), false);
                         } else {
                             makeToast("Download already started!!", Toast.LENGTH_SHORT);
                         }
@@ -247,14 +243,8 @@ public class MainActivity extends AppCompatActivity {
                                             }
                                             if (dynamicName != null) {
                                                 espConnected.get(i).name = dynamicName;
-                                                final int finalI = i;
-                                                if(!espConnected.get(i).isFileDownloaded()) {
-                                                    new Thread(new Runnable() {
-                                                        public void run() {
-                                                            downloadFile(espConnected.get(finalI));
-                                                        }
-                                                    }).start();
-                                                }
+                                                espConnected.get(i).setDynamicName(true);
+                                                downloadFile(espConnected.get(i), true);
                                             }
                                         }
                                         espConnectedTemp.add(espConnected.get(i));
@@ -272,11 +262,8 @@ public class MainActivity extends AppCompatActivity {
                                     }
                                     if (dynamicName != null) {
                                         esp.name = dynamicName;
-                                        new Thread(new Runnable() {
-                                            public void run() {
-                                                downloadFile(esp);
-                                            }
-                                        }).start();
+                                        esp.setDynamicName(true);
+                                        downloadFile(esp, true);
                                     }
                                     espConnectedTemp.add(esp);
                                 }
@@ -302,6 +289,7 @@ public class MainActivity extends AppCompatActivity {
             }
 
             private String getDynamicName(ESP esp) throws IOException {
+                if (esp.isDynamicName()) return esp.name;
                 String dynamicName = null;
                 HttpClient httpclient = new DefaultHttpClient();
                 String url = "http://" + esp.getIpAddress() + "/id?";
@@ -323,62 +311,87 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    public void downloadFile(ESP esp) {
-        if(esp.downloadStarted)return;
-        esp.downloadStarted = true;
-        try {
-            esp.setDownloadedContentLength(0);
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-
-                    ba.notifyDataSetChanged();
+    public void downloadFile(final ESP esp, final boolean isAutoDownload) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                SimpleDateFormat formatter = new SimpleDateFormat("dd_MMM");
+                formatter.setLenient(false);
+                Date today = new Date();
+                String date = formatter.format(today);
+                final String fileName = "/storage/emulated/0/Download/" + esp.getName() + "_" + date + "_" + esp.getMacAddress() + "_solarData.txt";
+                final File file = new File(fileName);
+                if (isAutoDownload) {
+                    if (esp.isFileDownloaded()){
+                        return;
+                    }
                 }
-            });
-            String timestamp = "";
-            SimpleDateFormat formatter = new SimpleDateFormat("dd_MMM");
-            formatter.setLenient(false);
-            Date today = new Date();
-            String date = formatter.format(today);
-            File file = new File("/storage/emulated/0/Download", esp.getName() + "_" + date + "_" + esp.getMacAddress() + "_solarData.txt");
-            HttpClient httpclient = new DefaultHttpClient();
-            timestamp = time_stamp();
-            String url = "http://" + esp.getIpAddress() + "/solarData.txt?" + timestamp;
+                if (esp.downloadStarted) return;
+                esp.downloadStarted = true;
+                try {
+                    esp.setDownloadedContentLength(0);
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            ba.notifyDataSetChanged();
+                        }
+                    });
+                    String timestamp = "";
+                    HttpClient httpclient = new DefaultHttpClient();
+                    timestamp = time_stamp();
+                    String url = "http://" + esp.getIpAddress() + "/solarData.txt?" + timestamp;
 //            String url = "http://" + esp.getIpAddress() + "/solarData.txt";
 //            String url = "https://www.realvnc.com/download/file/vnc.files/VNC-Server-6.2.0-Windows.exe";
-            HttpGet httpget = new HttpGet(url);
-            HttpResponse response = httpclient.execute(httpget);
-            HttpEntity entity = response.getEntity();
-            int contentLength = Integer.parseInt(response.getFirstHeader("Content-Length").getValue());
-            esp.setMaxContentLength(contentLength);
-            if (entity != null) {
-                InputStream inputStream = entity.getContent();
-                if (copyInputStreamToFile(inputStream, file, contentLength, esp)) {
-                    Message msg = new Message();
-                    Bundle b = new Bundle();
-                    b.putString("fileName", file.getName());
-                    b.putBoolean("success", true);
-                    b.putInt("messageType", FILE_DOWNLOAD);
-                    msg.setData(b);
-                    handler.sendMessage(msg);
-                    esp.setFileDownloaded(true);
-                } else {
-                    Message msg = new Message();
-                    Bundle b = new Bundle();
-                    b.putString("fileName", file.getName());
-                    b.putBoolean("success", false);
-                    b.putInt("messageType", FILE_DOWNLOAD);
-                    msg.setData(b);
-                    handler.sendMessage(msg);
+                    HttpGet httpget = new HttpGet(url);
+                    HttpResponse response = httpclient.execute(httpget);
+                    HttpEntity entity = response.getEntity();
+                    long contentLength = Long.parseLong(response.getFirstHeader("Content-Length").getValue());
+                    esp.setMaxContentLength(contentLength);
+                    if (isAutoDownload) {
+                        if (contentLength <= file.length()) {
+                            esp.setDownloadedContentLength(contentLength);
+                            esp.setFileDownloaded(true);
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Toast.makeText(getApplicationContext(), "Already downloaded:\n FileName: " + file.getName(), Toast.LENGTH_SHORT).show();
+                                    ba.notifyDataSetChanged();
+                                }
+                            });
+                            return;
+                        }
+                    }
+                    if (entity != null) {
+                        InputStream inputStream = entity.getContent();
+                        if (copyInputStreamToFile(inputStream, file, contentLength, esp)) {
+                            Message msg = new Message();
+                            Bundle b = new Bundle();
+                            b.putString("fileName", file.getName());
+                            b.putBoolean("success", true);
+                            b.putInt("messageType", FILE_DOWNLOAD);
+                            msg.setData(b);
+                            handler.sendMessage(msg);
+                            esp.setFileDownloaded(true);
+                        } else {
+                            Message msg = new Message();
+                            Bundle b = new Bundle();
+                            b.putString("fileName", file.getName());
+                            b.putBoolean("success", false);
+                            b.putInt("messageType", FILE_DOWNLOAD);
+                            msg.setData(b);
+                            handler.sendMessage(msg);
+                        }
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    makeToast("Download Failed!! " + esp.getName(), Toast.LENGTH_SHORT);
+                } finally {
+                    esp.downloadStarted = false;
                 }
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-            makeToast("Download Failed!! " + esp.getName(), Toast.LENGTH_SHORT);
-        } finally {
-            esp.downloadStarted = false;
-        }
+        }).start();
     }
+
     @Override
     public void onRequestPermissionsResult(int permsRequestCode, String[] permissions, int[] grantResults) {
         boolean writeAccepted = false;
@@ -395,7 +408,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private boolean copyInputStreamToFile(InputStream in, File file, int contentLength, ESP esp) {
+    private boolean copyInputStreamToFile(InputStream in, File file, long contentLength, ESP esp) {
         OutputStream out = null;
         boolean success = false;
         try {
