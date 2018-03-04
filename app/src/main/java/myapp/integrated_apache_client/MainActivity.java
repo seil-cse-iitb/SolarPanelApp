@@ -127,22 +127,25 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public View getView(final int position, View convertView, ViewGroup parent) {
+                final ESP esp = getItem(position);
                 convertView = getLayoutInflater().inflate(R.layout.my_list_item, null);
-                ((TextView) convertView.findViewById(R.id.name)).setText(getItem(position).getName());
-                ((TextView) convertView.findViewById(R.id.fileSize)).setText("(" + getItem(position).getMaxContentLength() + " bytes)");
+                ((TextView) convertView.findViewById(R.id.name)).setText(esp.getName());
+                ((TextView) convertView.findViewById(R.id.fileSize)).setText("(" + esp.getMaxContentLength() + " bytes)");
 //                ((TextView) convertView.findViewById(R.id.text1)).setText(getItem(position).getIpAddress());
 //                ((TextView) convertView.findViewById(R.id.text2)).setText(getItem(position).getMacAddress());
                 ProgressBar pb = (ProgressBar) convertView.findViewById(R.id.pbDownload);
-                pb.setMax((int) getItem(position).getMaxContentLength());
-                pb.setProgress((int) getItem(position).getDownloadedContentLength());
+                pb.setMax((int) esp.getMaxContentLength());
+                pb.setProgress((int) esp.getDownloadedContentLength());
                 Button btnDelete = (Button) convertView.findViewById(R.id.btnDelete);
 
                 btnDelete.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
+                        getListOfConnectedDevicesThread.interrupt();
+                        refreshThread.interrupt();
                         new AlertDialog.Builder(MainActivity.this)
                                 .setTitle("Delete SolarData.txt")
-                                .setMessage("Do you really want to delete file from ESP ?")
+                                .setMessage("Do you really want to delete file from ESP ("+esp.getName()+") ?")
                                 .setIcon(android.R.drawable.ic_dialog_alert)
                                 .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
 
@@ -152,38 +155,45 @@ public class MainActivity extends AppCompatActivity {
                                             @Override
                                             public void run() {
                                                 HttpClient httpclient = new DefaultHttpClient();
-                                                HttpGet httpGet = new HttpGet("http://" + getItem(position).getIpAddress() + "/delete?");
+                                                HttpGet httpGet = new HttpGet("http://" +esp.getIpAddress() + "/delete?");
                                                 try {
                                                     HttpResponse response = httpclient.execute(httpGet);
                                                     HttpEntity entity = response.getEntity();
                                                     if (entity != null) {
-                                                        makeToast("Delete Success!!", Toast.LENGTH_LONG);
+                                                        makeToast("Delete Success!! Name:"+esp.getName(), Toast.LENGTH_LONG);
                                                     } else {
-                                                        makeToast("Delete Failed!!", Toast.LENGTH_LONG);
+                                                        makeToast("Delete Failed!! Name:"+esp.getName(), Toast.LENGTH_LONG);
                                                     }
                                                 } catch (Exception e) {
                                                     e.printStackTrace();
-                                                    makeToast("Delete Failed!!", Toast.LENGTH_LONG);
+                                                    makeToast("Delete Failed!! Name:"+esp.getName(), Toast.LENGTH_LONG);
                                                 }
+                                                refreshThread.start();
                                             }
                                         }).start();
                                     }
                                 })
-                                .setNegativeButton(android.R.string.no, null).show();
+                                .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialogInterface, int i) {
+                                        refreshThread.start();
+
+                                    }
+                                }).show();
                     }
                 });
                 convertView.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        if (!getItem(position).downloadStarted) {
+                        if (!esp.downloadStarted) {
                             //Download file
-                            downloadFile(getItem(position), false);
+                            downloadFile(esp, false);
                         } else {
                             makeToast("Download already started!!", Toast.LENGTH_SHORT);
                         }
                     }
                 });
-                System.out.println("Showing ESP: " + getItem(position));
+                System.out.println("Showing ESP: " + esp);
                 return convertView;
             }
         };
@@ -198,7 +208,7 @@ public class MainActivity extends AppCompatActivity {
                 try {
                     Thread.sleep(5000);
                 } catch (InterruptedException e) {
-                    e.printStackTrace();
+                    break;
                 }
             }
         }
@@ -209,7 +219,7 @@ public class MainActivity extends AppCompatActivity {
         public void run() {
             BufferedReader br = null;
             boolean isFirstLine = true;
-            ArrayList<ESP> espConnectedTemp = new ArrayList<>();
+            final ArrayList<ESP> espConnectedTemp = new ArrayList<>();
             try {
                 br = new BufferedReader(new FileReader("/proc/net/arp"));
                 String line;
@@ -277,8 +287,14 @@ public class MainActivity extends AppCompatActivity {
                     e.printStackTrace();
                 }
             }
-            espConnected.clear();
-            espConnected.addAll(espConnectedTemp);
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    espConnected.clear();
+                    espConnected.addAll(espConnectedTemp);
+                    ba.notifyDataSetChanged();
+                }
+            });
             Bundle b = new Bundle();
             b.putInt("messageType", REFRESH_LIST);
             Message m = new Message();
