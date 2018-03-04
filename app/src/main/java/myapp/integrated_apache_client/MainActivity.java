@@ -133,11 +133,11 @@ public class MainActivity extends AppCompatActivity {
 //                ((TextView) convertView.findViewById(R.id.text1)).setText(getItem(position).getIpAddress());
 //                ((TextView) convertView.findViewById(R.id.text2)).setText(getItem(position).getMacAddress());
                 ProgressBar pb = (ProgressBar) convertView.findViewById(R.id.pbDownload);
-                pb.setMax((int)getItem(position).getMaxContentLength());
-                pb.setProgress((int)getItem(position).getDownloadedContentLength());
-                Button btnDownload = (Button) convertView.findViewById(R.id.btnDelete);
+                pb.setMax((int) getItem(position).getMaxContentLength());
+                pb.setProgress((int) getItem(position).getDownloadedContentLength());
+                Button btnDelete = (Button) convertView.findViewById(R.id.btnDelete);
 
-                btnDownload.setOnClickListener(new View.OnClickListener() {
+                btnDelete.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
                         new AlertDialog.Builder(MainActivity.this)
@@ -188,130 +188,136 @@ public class MainActivity extends AppCompatActivity {
             }
         };
         lvEsp.setAdapter(ba);
-        Thread refreshThread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                while (true) {
-                    getListOfConnectedDevice();
-                    try {
-                        Thread.sleep(5000);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        });
         refreshThread.start();
     }
-
-    public void getListOfConnectedDevice() {
-        Thread thread = new Thread(new Runnable() {
-
-            @Override
-            public void run() {
-                BufferedReader br = null;
-                boolean isFirstLine = true;
-                ArrayList<ESP> espConnectedTemp = new ArrayList<>();
+    Thread refreshThread = new Thread(new Runnable() {
+        @Override
+        public void run() {
+            while (true) {
+                getListOfConnectedDevice();
                 try {
-                    br = new BufferedReader(new FileReader("/proc/net/arp"));
-                    String line;
-                    while ((line = br.readLine()) != null) {
-                        System.out.println(line);
-                        if (isFirstLine) {
-                            isFirstLine = false;
-                            continue;
-                        }
-                        String[] splitted = line.split(" +");
-                        if (splitted != null && splitted.length >= 4) {
-                            String ipAddress = splitted[0];
-                            String macAddress = splitted[3];
-                            boolean isReachable = InetAddress.getByName(
-                                    splitted[0]).isReachable(500);  // this is network call so we cant do that on UI thread, so i take background thread.
-                            if (isReachable) {
-                                Log.d("Device Information", ipAddress + " : "
-                                        + macAddress);
-                                boolean connectedBefore = false;
-                                for (int i = 0; i < espConnected.size(); i++) {
-                                    if (espConnected.get(i).ipAddress.equals(ipAddress)) {
-                                        if (!espConnected.get(i).downloadStarted) {
-                                            String dynamicName = null;
-                                            try {
-                                                dynamicName = getDynamicName(espConnected.get(i));
-                                            } catch (Exception e) {
-                                                e.printStackTrace();
-                                                dynamicName = null;
-                                            }
-                                            if (dynamicName != null) {
-                                                espConnected.get(i).name = dynamicName;
-                                                espConnected.get(i).setDynamicName(true);
-                                                downloadFile(espConnected.get(i), true);
-                                            }
+                    Thread.sleep(5000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    });
+    Thread getListOfConnectedDevicesThread = new Thread(new Runnable() {
+
+        @Override
+        public void run() {
+            BufferedReader br = null;
+            boolean isFirstLine = true;
+            ArrayList<ESP> espConnectedTemp = new ArrayList<>();
+            try {
+                br = new BufferedReader(new FileReader("/proc/net/arp"));
+                String line;
+                while ((line = br.readLine()) != null) {
+                    System.out.println(line);
+                    if (isFirstLine) {
+                        isFirstLine = false;
+                        continue;
+                    }
+                    String[] splitted = line.split(" +");
+                    if (splitted != null && splitted.length >= 4) {
+                        String ipAddress = splitted[0];
+                        String macAddress = splitted[3];
+                        boolean isReachable = InetAddress.getByName(
+                                splitted[0]).isReachable(500);  // this is network call so we cant do that on UI thread, so i take background thread.
+                        if (isReachable) {
+                            Log.d("Device Information", ipAddress + " : "
+                                    + macAddress);
+                            boolean connectedBefore = false;
+                            for (int i = 0; i < espConnected.size(); i++) {
+                                if (espConnected.get(i).ipAddress.equals(ipAddress)) {
+                                    if (!espConnected.get(i).downloadStarted) {
+                                        String dynamicName = null;
+                                        try {
+                                            dynamicName = getDynamicName(espConnected.get(i));
+                                        } catch (Exception e) {
+                                            e.printStackTrace();
+                                            dynamicName = null;
                                         }
-                                        espConnectedTemp.add(espConnected.get(i));
-                                        connectedBefore = true;
+                                        if (dynamicName != null) {
+                                            espConnected.get(i).name = dynamicName;
+                                            espConnected.get(i).setDynamicName(true);
+                                            downloadFile(espConnected.get(i), true);
+                                        }
                                     }
+                                    espConnectedTemp.add(espConnected.get(i));
+                                    connectedBefore = true;
                                 }
-                                if (!connectedBefore) {
-                                    final ESP esp = new ESP(ipAddress, macAddress);
-                                    String dynamicName = null;
-                                    try {
-                                        dynamicName = getDynamicName(esp);
-                                    } catch (Exception e) {
-                                        e.printStackTrace();
-                                        dynamicName = null;
-                                    }
-                                    if (dynamicName != null) {
-                                        esp.name = dynamicName;
-                                        esp.setDynamicName(true);
-                                        downloadFile(esp, true);
-                                    }
-                                    espConnectedTemp.add(esp);
+                            }
+                            if (!connectedBefore) {
+                                final ESP esp = new ESP(ipAddress, macAddress);
+                                String dynamicName = null;
+                                try {
+                                    dynamicName = getDynamicName(esp);
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                    dynamicName = null;
                                 }
+                                if (dynamicName != null) {
+                                    esp.name = dynamicName;
+                                    esp.setDynamicName(true);
+                                    downloadFile(esp, true);
+                                }
+                                espConnectedTemp.add(esp);
                             }
                         }
                     }
-                } catch (Exception e) {
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                try {
+                    br.close();
+                } catch (IOException e) {
                     e.printStackTrace();
-                } finally {
-                    try {
-                        br.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
                 }
-                espConnected.clear();
-                espConnected.addAll(espConnectedTemp);
-                Bundle b = new Bundle();
-                b.putInt("messageType", REFRESH_LIST);
-                Message m = new Message();
-                m.setData(b);
-                handler.sendMessage(m);
             }
+            espConnected.clear();
+            espConnected.addAll(espConnectedTemp);
+            Bundle b = new Bundle();
+            b.putInt("messageType", REFRESH_LIST);
+            Message m = new Message();
+            m.setData(b);
+            handler.sendMessage(m);
+        }
 
-            private String getDynamicName(ESP esp) throws IOException {
-                if (esp.isDynamicName()) return esp.name;
-                String dynamicName = null;
-                HttpClient httpclient = new DefaultHttpClient();
-                String url = "http://" + esp.getIpAddress() + "/id?";
-                HttpGet httpget = new HttpGet(url);
-                HttpResponse response = null;
-                response = httpclient.execute(httpget);
-                HttpEntity entity = response.getEntity();
-                if (entity != null) {
-                    InputStream inputStream;
-                    inputStream = entity.getContent();
-                    Scanner sc = new Scanner(inputStream);
-                    dynamicName = sc.nextLine();
-                    System.out.println(dynamicName);
-                }
-                return dynamicName;
+        private String getDynamicName(ESP esp) throws IOException {
+            if (esp.isDynamicName()) return esp.name;
+            String dynamicName = null;
+            HttpClient httpclient = new DefaultHttpClient();
+            String url = "http://" + esp.getIpAddress() + "/id?";
+            HttpGet httpget = new HttpGet(url);
+            HttpResponse response = null;
+            response = httpclient.execute(httpget);
+            HttpEntity entity = response.getEntity();
+            if (entity != null) {
+                InputStream inputStream;
+                inputStream = entity.getContent();
+                Scanner sc = new Scanner(inputStream);
+                dynamicName = sc.nextLine();
+                System.out.println(dynamicName);
             }
-        });
-        thread.start();
+            return dynamicName;
+        }
+    });
 
+    public void getListOfConnectedDevice() {
+        getListOfConnectedDevicesThread.interrupt();
+        getListOfConnectedDevicesThread.start();
     }
 
     public void downloadFile(final ESP esp, final boolean isAutoDownload) {
+        if (isAutoDownload) {
+            if (esp.isFileDownloaded()) {
+                return;
+            }
+        }
+        if (esp.downloadStarted) return;
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -321,12 +327,6 @@ public class MainActivity extends AppCompatActivity {
                 String date = formatter.format(today);
                 final String fileName = "/storage/emulated/0/Download/" + esp.getName() + "_" + date + "_" + esp.getMacAddress() + "_solarData.txt";
                 final File file = new File(fileName);
-                if (isAutoDownload) {
-                    if (esp.isFileDownloaded()){
-                        return;
-                    }
-                }
-                if (esp.downloadStarted) return;
                 esp.downloadStarted = true;
                 try {
                     esp.setDownloadedContentLength(0);
