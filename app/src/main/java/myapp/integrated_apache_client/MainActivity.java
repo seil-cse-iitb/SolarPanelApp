@@ -105,7 +105,12 @@ public class MainActivity extends AppCompatActivity {
         btnRead.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                getListOfConnectedDevice();
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        getListOfConnectedDevice();
+                    }
+                });
             }
         });
         //logic to handle download button
@@ -514,14 +519,12 @@ public class MainActivity extends AppCompatActivity {
                 if (isChecked) {
                     if (actualState == HOTSPOT_OFF) { //if actual state is off
                         switchHotspot(true);
-                        refreshThread.start();
                     } else {
                         Toast.makeText(MainActivity.this, "Hotspot is being OFF!", Toast.LENGTH_SHORT).show();
                         toggleButton.setChecked(false);
                     }
                 } else {
                     if (actualState == HOTSPOT_ON) { //if actual state is on
-                        refreshThread.interrupt();
                         switchHotspot(false);
                     } else {
                         Toast.makeText(MainActivity.this, "Hotspot is being ON!", Toast.LENGTH_SHORT).show();
