@@ -14,6 +14,7 @@ import android.os.Message;
 import android.provider.Settings;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.text.InputType;
 import android.text.format.DateFormat;
 import android.util.Log;
 import android.view.View;
@@ -21,6 +22,7 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.CompoundButton;
+import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -142,7 +144,51 @@ public class MainActivity extends AppCompatActivity {
                 pb.setMax((int) esp.getMaxContentLength());
                 pb.setProgress((int) esp.getDownloadedContentLength());
                 Button btnDelete = (Button) convertView.findViewById(R.id.btnDelete);
+                Button btnDebugESP = (Button) convertView.findViewById(R.id.btnDebugESP);
+                btnDebugESP.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                        builder.setTitle("Debug ESP");
+                        final EditText input = new EditText(MainActivity.this);
+                        input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+                        builder.setView(input);
+                        builder.setPositiveButton("Send", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                final String debugText = input.getText().toString();
+                                new Thread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        HttpClient httpclient = new DefaultHttpClient();
+                                        HttpGet httpGet = new HttpGet("http://" + esp.getIpAddress() + "/debug?"+debugText);
+                                        try {
+                                            HttpResponse response = httpclient.execute(httpGet);
+                                            HttpEntity entity = response.getEntity();
+                                            if (entity != null) {
+                                                makeToast("Debug request sent!! Name:" + esp.getName(), Toast.LENGTH_LONG);
+                                            } else {
+                                                makeToast("Debug request failed!! Name:" + esp.getName(), Toast.LENGTH_LONG);
+                                            }
+                                        } catch (Exception e) {
+                                            e.printStackTrace();
+                                            makeToast("Debug request failed!! Name:" + esp.getName(), Toast.LENGTH_LONG);
+                                        }
+                                        refreshThread.start();
+                                    }
+                                }).start();
+                            }
+                        });
+                        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.cancel();
+                            }
+                        });
 
+                        builder.show();
+                    }
+                });
                 btnDelete.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
