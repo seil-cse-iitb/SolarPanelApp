@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android" >
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/mainActivity"
+            android:title="Main Activity" />
+        <item
+            android:id="@+id/liveVisualisationActivity"
+            android:title="Live Visualisation" />
+        <!--<item-->
+            <!--android:id="@+id/nav_slideshow"-->
+            <!--android:title="slideshow" />-->
+        <!--<item-->
+            <!--android:id="@+id/nav_manage"-->
+            <!--android:title="tools" />-->
+    </group>
+</menu>

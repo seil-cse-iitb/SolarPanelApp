@@ -12,11 +12,17 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.provider.Settings;
+import android.support.design.widget.NavigationView;
+import android.support.v4.view.GravityCompat;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.text.InputType;
 import android.text.format.DateFormat;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
@@ -51,7 +57,7 @@ import java.util.Date;
 import java.util.Locale;
 import java.util.Scanner;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends BaseActivity {
     static ArrayList<ESP> espConnected;
     ListView lvEsp;
     BaseAdapter ba;
@@ -64,8 +70,8 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        super.onCreate(savedInstanceState);
         begin();
         if (espConnected == null) {
             espConnected = new ArrayList<>();
@@ -265,7 +271,7 @@ public class MainActivity extends AppCompatActivity {
         }
     });
 
-    private String getDynamicName(ESP esp) throws IOException {
+   private String getDynamicName(ESP esp) throws IOException {
         if (esp.isDynamicName()) return esp.name;
         String dynamicName = null;
         HttpClient httpclient = new DefaultHttpClient();
