@@ -7,6 +7,9 @@
         <item
             android:id="@+id/liveVisualisationActivity"
             android:title="Live Visualisation" />
+        <item
+            android:id="@+id/randomLiveVisualisationTestActivity"
+            android:title="Random Live Visualisation Test" />
         <!--<item-->
             <!--android:id="@+id/nav_slideshow"-->
             <!--android:title="slideshow" />-->

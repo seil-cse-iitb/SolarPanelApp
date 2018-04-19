@@ -10,12 +10,16 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
+import android.widget.Toast;
+
+import java.util.ArrayList;
 
 /**
  * Created by seil on 26/3/18.
  */
 
 public class BaseActivity extends AppCompatActivity {
+    static ArrayList<ESP> espConnected;
     private DrawerLayout mDrawerLayout;
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -38,15 +42,19 @@ public class BaseActivity extends AppCompatActivity {
                         switch (menuItem.getItemId()){
                             case R.id.liveVisualisationActivity:
                                 intent= new Intent(getApplicationContext(),LiveVisualisation.class);
-                                startActivity(intent);
-                                finish();
                                 break;
                             case R.id.mainActivity:
                                 intent = new Intent(getApplicationContext(), MainActivity.class);
-                                startActivity(intent);
-                                finish();
                                 break;
+                            case R.id.randomLiveVisualisationTestActivity:
+                                intent = new Intent(getApplicationContext(),RandomLiveVisualisationTestActivity.class);
+                                break;
+                            default:
+                                return true;
                         }
+                        startActivity(intent);
+                        finish();
+
                         return true;
                     }
                 });
@@ -61,6 +69,23 @@ public class BaseActivity extends AppCompatActivity {
 
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    protected void makeToast(final String str, final int duration) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(BaseActivity.this, str, duration).show();
+            }
+        });
+    }
+    protected void makeToast(final String str) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(BaseActivity.this, str, Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
 }

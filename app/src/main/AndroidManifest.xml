@@ -25,7 +25,8 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".LiveVisualisation"></activity>
+        <activity android:name=".LiveVisualisation" />
+        <activity android:name=".RandomLiveVisualisationTestActivity"></activity>
     </application>
 
 </manifest>

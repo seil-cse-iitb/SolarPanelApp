@@ -31,4 +31,6 @@ dependencies {
     implementation group: 'org.apache.httpcomponents', name: 'httpclient-android', version: '4.3.5'
     implementation 'com.jjoe64:graphview:4.2.1'
     testImplementation 'junit:junit:4.12'
+    compile group: 'commons-httpclient', name: 'commons-httpclient', version: '3.1'
+
 }

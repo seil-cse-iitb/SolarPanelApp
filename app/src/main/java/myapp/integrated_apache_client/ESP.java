@@ -1,20 +1,38 @@
 package myapp.integrated_apache_client;
+
+import com.jjoe64.graphview.series.DataPoint;
+
 import java.io.Serializable;
+import java.util.ArrayList;
+
+import model.ESPData;
 
 /**
  * Created by ABC on 9/13/2017.
  */
 
 public class ESP implements Serializable {
-    long id = (long)Math.random();
+    long id = (long) Math.random();
     String ipAddress;
     String macAddress;
     String name;
-    long downloadedContentLength=0;
-    long maxContentLength=0;
+    long downloadedContentLength = 0;
+    long maxContentLength = 0;
     boolean downloadStarted = false;
     boolean fileDownloaded = false;
     boolean isDynamicName = false;
+
+    ArrayList<ESPData> espDataArrayList = new ArrayList<>();
+
+    public DataPoint[] getDataPointArray(String fieldName) {
+        int size = espDataArrayList.size();
+        DataPoint[] dataPoints = new DataPoint[size];
+        for (int x = 0; x < size; x++) {
+            int y = Integer.parseInt(espDataArrayList.get(x).getTemp());
+            dataPoints[x] = new DataPoint(x, y);
+        }
+        return dataPoints;
+    }
 
     public boolean isDynamicName() {
         return isDynamicName;
@@ -64,7 +82,7 @@ public class ESP implements Serializable {
         this.ipAddress = ipAddress;
         this.macAddress = macAddress;
         String[] ipArray = ipAddress.split("\\.");
-        this.name = "Node("+ipArray[3]+")";
+        this.name = "Node(" + ipArray[3] + ")";
     }
 
 

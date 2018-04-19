@@ -58,7 +58,6 @@ import java.util.Locale;
 import java.util.Scanner;
 
 public class MainActivity extends BaseActivity {
-    static ArrayList<ESP> espConnected;
     ListView lvEsp;
     BaseAdapter ba;
     static Handler handler;
@@ -167,7 +166,7 @@ public class MainActivity extends BaseActivity {
                                     @Override
                                     public void run() {
                                         HttpClient httpclient = new DefaultHttpClient();
-                                        HttpGet httpGet = new HttpGet("http://" + esp.getIpAddress() + "/debug?"+debugText);
+                                        HttpGet httpGet = new HttpGet("http://" + esp.getIpAddress() + "/debug?" + debugText);
                                         try {
                                             HttpResponse response = httpclient.execute(httpGet);
                                             HttpEntity entity = response.getEntity();
@@ -271,7 +270,8 @@ public class MainActivity extends BaseActivity {
         }
     });
 
-   private String getDynamicName(ESP esp) throws IOException {
+    private String getDynamicName(ESP esp) throws IOException {
+        if (1 == 1) return null;
         if (esp.isDynamicName()) return esp.name;
         String dynamicName = null;
         HttpClient httpclient = new DefaultHttpClient();
@@ -607,14 +607,5 @@ public class MainActivity extends BaseActivity {
         }
     }
 
-    private void makeToast(final String str, final int duration) {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                Toast.makeText(MainActivity.this, str, duration).show();
-            }
-        });
-
-    }
 
 }
