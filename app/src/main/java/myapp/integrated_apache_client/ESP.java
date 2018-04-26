@@ -28,7 +28,7 @@ public class ESP implements Serializable {
         int size = espDataArrayList.size();
         DataPoint[] dataPoints = new DataPoint[size];
         for (int x = 0; x < size; x++) {
-            int y = Integer.parseInt(espDataArrayList.get(x).getTemp());
+            double y = espDataArrayList.get(x).getData(fieldName);
             dataPoints[x] = new DataPoint(x, y);
         }
         return dataPoints;
