@@ -16,7 +16,7 @@ public class ESPData implements Serializable {
     static {
         int index = 0;
         fieldIndexMap.put("sequence", index++);
-        fieldIndexMap.put("mm", index++);
+        fieldIndexMap.put("MM", index++);
         fieldIndexMap.put("dd", index++);
         fieldIndexMap.put("hh", index++);
         fieldIndexMap.put("mm", index++);
@@ -44,8 +44,17 @@ public class ESPData implements Serializable {
     public static ESPData buildESPData(String line) {
         String[] split = line.split(",");
         ESPData espData = new ESPData();
-        for (int i = 0; i < fieldIndexMap.size(); i++) {
-            espData.data[i] = Double.parseDouble(split[i]);
+        int length = fieldIndexMap.size();
+        espData.data = new double[length];
+        int dataI=0,splitI=0;
+        espData.data[dataI++] = Double.parseDouble(split[splitI++]);
+        espData.data[dataI++] = Double.parseDouble(split[splitI].substring(0,2));
+        espData.data[dataI++] = Double.parseDouble(split[splitI].substring(2,4));
+        espData.data[dataI++] = Double.parseDouble(split[splitI].substring(4,6));
+        espData.data[dataI++] = Double.parseDouble(split[splitI].substring(6,8));
+        espData.data[dataI++] = Double.parseDouble(split[splitI++].substring(8,10));
+        for (; dataI < length; splitI++,dataI++) {
+            espData.data[dataI] = Double.parseDouble(split[splitI]);
         }
         return espData;
     }

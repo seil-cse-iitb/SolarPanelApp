@@ -24,6 +24,8 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.Iterator;
+import java.util.Set;
 
 import model.ESPData;
 
@@ -62,7 +64,14 @@ public class LiveVisualisation extends BaseActivity {
                 graph.getViewport().setXAxisBoundsManual(true);
                 graph.addSeries(series);
                 final Spinner spinner = (Spinner) convertView.findViewById(R.id.spinner);
-                ArrayAdapter<String> adapter = new ArrayAdapter<>(getApplicationContext(), R.layout.support_simple_spinner_dropdown_item, (String[]) ESPData.fieldIndexMap.keySet().toArray());
+
+                Set<String> keySet = ESPData.fieldIndexMap.keySet();
+                Iterator<String> iterator = keySet.iterator();
+                String[] array = new String[keySet.size()];
+                for (int i = 0; iterator.hasNext(); i++) {
+                    array[i] = iterator.next();
+                }
+                ArrayAdapter<String> adapter = new ArrayAdapter<>(getApplicationContext(), R.layout.support_simple_spinner_dropdown_item, array);
                 adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
                 spinner.setAdapter(adapter);
                 final Thread liveDataThread = new Thread(new Runnable() {
@@ -101,28 +110,28 @@ public class LiveVisualisation extends BaseActivity {
                 spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                     @Override
                     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                        graph.setVisibility(View.VISIBLE);
+//                        graph.setVisibility(View.VISIBLE);
                         series.resetData(esp.getDataPointArray(spinner.getSelectedItem() + ""));
                     }
 
                     @Override
                     public void onNothingSelected(AdapterView<?> parent) {
-                        graph.setVisibility(View.GONE);
-                        if (liveDataThread.isAlive())
-                            liveDataThread.interrupt();
-                        series.resetData(new DataPoint[]{});
+//                        graph.setVisibility(View.GONE);
+//                        if (liveDataThread.isAlive())
+//                            liveDataThread.interrupt();
+//                        series.resetData(new DataPoint[]{});
                     }
                 });
                 convertView.findViewById(R.id.ibGraph).setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        if (graph.getVisibility() == View.VISIBLE) {
-                            graph.setVisibility(View.GONE);
-                        } else {
-                            graph.setVisibility(View.VISIBLE);
-                            if (!liveDataThread.isAlive())
-                                liveDataThread.start();
-                        }
+//                        if (graph.getVisibility() == View.VISIBLE) {
+//                            graph.setVisibility(View.GONE);
+//                        } else {
+//                            graph.setVisibility(View.VISIBLE);
+//                            if (!liveDataThread.isAlive())
+//                                liveDataThread.start();
+//                        }
                     }
                 });
                 convertView.findViewById(R.id.ibSync).setOnClickListener(new View.OnClickListener() {
