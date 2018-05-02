@@ -48,8 +48,10 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
 import java.net.InetAddress;
+import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -76,7 +78,7 @@ public class MainActivity extends BaseActivity {
             espConnected = new ArrayList<>();
         }
         lvEsp = (ListView) findViewById(R.id.lvEsp);
-        final Button btnRead = (Button) findViewById(R.id.btn_refresh);
+        final Button btnRefresh = (Button) findViewById(R.id.btn_refresh);
         String[] perms = {"android.permission.WRITE_EXTERNAL_STORAGE"};
         int permsRequestCode = 200;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -109,15 +111,26 @@ public class MainActivity extends BaseActivity {
                 }
             }
         };
-        btnRead.setOnClickListener(new View.OnClickListener() {
+        btnRefresh.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        getListOfConnectedDevice();
-                    }
-                });
+                if (refreshThread != null && !refreshThread.isAlive())
+                    refreshThread.start();
+                else if (refreshThread == null) {
+                    refreshThread = new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            while (true) {
+                                getListOfConnectedDevice();
+                                try {
+                                    Thread.sleep(5000);
+                                } catch (InterruptedException e) {
+                                    break;
+                                }
+                            }
+                        }
+                    });
+                }
             }
         });
         //logic to handle download button
@@ -156,7 +169,7 @@ public class MainActivity extends BaseActivity {
                         AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
                         builder.setTitle("Debug ESP");
                         final EditText input = new EditText(MainActivity.this);
-                        input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+                        input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_SHORT_MESSAGE);
                         builder.setView(input);
                         builder.setPositiveButton("Send", new DialogInterface.OnClickListener() {
                             @Override
@@ -166,7 +179,13 @@ public class MainActivity extends BaseActivity {
                                     @Override
                                     public void run() {
                                         HttpClient httpclient = new DefaultHttpClient();
-                                        HttpGet httpGet = new HttpGet("http://" + esp.getIpAddress() + "/debug?" + debugText);
+                                        String encodedDebugText="";
+                                        try {
+                                         encodedDebugText= URLEncoder.encode(debugText,"UTF-8");
+                                        } catch (UnsupportedEncodingException e) {
+                                            e.printStackTrace();
+                                        }
+                                        HttpGet httpGet = new HttpGet("http://" + esp.getIpAddress() + "/debug?" + encodedDebugText);
                                         try {
                                             HttpResponse response = httpclient.execute(httpGet);
                                             HttpEntity entity = response.getEntity();
@@ -271,7 +290,6 @@ public class MainActivity extends BaseActivity {
     });
 
     private String getDynamicName(ESP esp) throws IOException {
-        if (1 == 1) return null;
         if (esp.isDynamicName()) return esp.name;
         String dynamicName = null;
         HttpClient httpclient = new DefaultHttpClient();
@@ -607,5 +625,10 @@ public class MainActivity extends BaseActivity {
         }
     }
 
-
+    @Override
+    protected void onStop() {
+        if (refreshThread.isAlive())
+            refreshThread.interrupt();
+        super.onStop();
+    }
 }

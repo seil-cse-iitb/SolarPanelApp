@@ -34,6 +34,10 @@ public class ESP implements Serializable {
         return dataPoints;
     }
 
+    public void addDataPoint(ESPData data){
+        espDataArrayList.add(data);
+    }
+
     public boolean isDynamicName() {
         return isDynamicName;
     }
@@ -82,7 +86,7 @@ public class ESP implements Serializable {
         this.ipAddress = ipAddress;
         this.macAddress = macAddress;
         String[] ipArray = ipAddress.split("\\.");
-        this.name = "Node(" + ipArray[3] + ")";
+        this.name = "Node (" + ipArray[3] + ")";
     }
 
 

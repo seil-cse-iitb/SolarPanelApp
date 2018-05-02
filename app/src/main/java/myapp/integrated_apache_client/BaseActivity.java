@@ -46,9 +46,6 @@ public class BaseActivity extends AppCompatActivity {
                             case R.id.mainActivity:
                                 intent = new Intent(getApplicationContext(), MainActivity.class);
                                 break;
-                            case R.id.randomLiveVisualisationTestActivity:
-                                intent = new Intent(getApplicationContext(),RandomLiveVisualisationTestActivity.class);
-                                break;
                             default:
                                 return true;
                         }

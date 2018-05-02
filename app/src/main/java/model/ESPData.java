@@ -3,6 +3,7 @@ package model;
 import com.jjoe64.graphview.series.DataPoint;
 
 import java.io.Serializable;
+import java.util.Date;
 import java.util.HashMap;
 
 /**
@@ -12,7 +13,7 @@ import java.util.HashMap;
 public class ESPData implements Serializable {
     double[] data;
     public static HashMap<String, Integer> fieldIndexMap = new HashMap<>();
-
+    public Date date;
     static {
         int index = 0;
         fieldIndexMap.put("sequence", index++);
@@ -40,7 +41,9 @@ public class ESPData implements Serializable {
         fieldIndexMap.put("LW", index++);
         fieldIndexMap.put("IR", index++);
     }
+    private ESPData(){
 
+    }
     public static ESPData buildESPData(String line) {
         String[] split = line.split(",");
         ESPData espData = new ESPData();
@@ -48,14 +51,20 @@ public class ESPData implements Serializable {
         espData.data = new double[length];
         int dataI=0,splitI=0;
         espData.data[dataI++] = Double.parseDouble(split[splitI++]);
-        espData.data[dataI++] = Double.parseDouble(split[splitI].substring(0,2));
-        espData.data[dataI++] = Double.parseDouble(split[splitI].substring(2,4));
-        espData.data[dataI++] = Double.parseDouble(split[splitI].substring(4,6));
-        espData.data[dataI++] = Double.parseDouble(split[splitI].substring(6,8));
-        espData.data[dataI++] = Double.parseDouble(split[splitI++].substring(8,10));
+        int MM = Integer.parseInt(split[splitI].substring(0,2));
+        int dd = Integer.parseInt(split[splitI].substring(2,4));
+        int hh = Integer.parseInt(split[splitI].substring(4,6));
+        int mm = Integer.parseInt(split[splitI].substring(6,8));
+        int ss = Integer.parseInt(split[splitI++].substring(8,10));
+        espData.data[dataI++] = MM;
+        espData.data[dataI++] = dd;
+        espData.data[dataI++] = hh;
+        espData.data[dataI++] = mm;
+        espData.data[dataI++] = ss;
         for (; dataI < length; splitI++,dataI++) {
             espData.data[dataI] = Double.parseDouble(split[splitI]);
         }
+        espData.date = new Date(2018,MM,dd,hh,mm,ss);        
         return espData;
     }
 

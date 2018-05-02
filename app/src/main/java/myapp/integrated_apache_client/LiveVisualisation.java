@@ -12,6 +12,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.jjoe64.graphview.GraphView;
+import com.jjoe64.graphview.Viewport;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
 
@@ -61,19 +62,46 @@ public class LiveVisualisation extends BaseActivity {
                 ((TextView) convertView.findViewById(R.id.name)).setText(esp.getName());
                 final GraphView graph = (GraphView) convertView.findViewById(R.id.graph);
                 final LineGraphSeries<DataPoint> series = new LineGraphSeries<>();
-                graph.getViewport().setXAxisBoundsManual(true);
+                Viewport viewport = graph.getViewport();
+                viewport.setXAxisBoundsManual(true);
+                viewport.setMinX(0);
+                viewport.setMaxX(30);
+                viewport.setScalable(true);
+                graph.getGridLabelRenderer().setLabelVerticalWidth(100);
                 graph.addSeries(series);
                 final Spinner spinner = (Spinner) convertView.findViewById(R.id.spinner);
 
                 Set<String> keySet = ESPData.fieldIndexMap.keySet();
                 Iterator<String> iterator = keySet.iterator();
-                String[] array = new String[keySet.size()];
+                final String[] array = new String[keySet.size()];
                 for (int i = 0; iterator.hasNext(); i++) {
                     array[i] = iterator.next();
                 }
-                ArrayAdapter<String> adapter = new ArrayAdapter<>(getApplicationContext(), R.layout.support_simple_spinner_dropdown_item, array);
-                adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-                spinner.setAdapter(adapter);
+                BaseAdapter spinnerAdapter = new BaseAdapter() {
+                    @Override
+                    public int getCount() {
+                        return array.length;
+                    }
+
+                    @Override
+                    public String getItem(int position) {
+                        return array[position];
+                    }
+
+                    @Override
+                    public long getItemId(int position) {
+                        return position;
+                    }
+
+                    @Override
+                    public View getView(int position, View convertView, ViewGroup parent) {
+                        convertView = getLayoutInflater().inflate(R.layout.my_spinner_item,null);
+                        TextView tvEspName= (TextView) convertView.findViewById(R.id.tvEspName);
+                        tvEspName.setText(getItem(position));
+                        return convertView;
+                    }
+                };
+                spinner.setAdapter(spinnerAdapter);
                 final Thread liveDataThread = new Thread(new Runnable() {
                     @Override
                     public void run() {
@@ -85,21 +113,21 @@ public class LiveVisualisation extends BaseActivity {
                             if (entity != null) {
                                 InputStream in = entity.getContent();
                                 BufferedReader br = new BufferedReader(new InputStreamReader(in));
-                                makeToast("Live streaming starts!" + esp.getName());
+                                makeToast("Live streaming starts! Name:" + esp.getName());
                                 while (true) {
                                     try {
                                         String line = br.readLine();
-                                        makeToast(line);
+//                                        makeToast(line);
                                         ESPData espData = ESPData.buildESPData(line);
-                                        esp.espDataArrayList.add(espData);
-                                        series.appendData(new DataPoint(series.getHighestValueX() + 1, espData.getData(spinner.getSelectedItem() + "")), true, 100);
+                                        esp.addDataPoint(espData);
+                                        series.appendData(new DataPoint(series.getHighestValueX()+1, espData.getData(spinner.getSelectedItem() + "")), true, 300);
                                     } catch (Exception e) {
                                         e.printStackTrace();
                                         break;
                                     }
                                 }
                             } else {
-                                makeToast("Live streaming fails!" + esp.getName());
+                                makeToast("Live streaming failed!! Name:" + esp.getName());
                             }
                         } catch (Exception e) {
                             e.printStackTrace();
@@ -122,19 +150,7 @@ public class LiveVisualisation extends BaseActivity {
 //                        series.resetData(new DataPoint[]{});
                     }
                 });
-                convertView.findViewById(R.id.ibGraph).setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-//                        if (graph.getVisibility() == View.VISIBLE) {
-//                            graph.setVisibility(View.GONE);
-//                        } else {
-//                            graph.setVisibility(View.VISIBLE);
-//                            if (!liveDataThread.isAlive())
-//                                liveDataThread.start();
-//                        }
-                    }
-                });
-                convertView.findViewById(R.id.ibSync).setOnClickListener(new View.OnClickListener() {
+             convertView.findViewById(R.id.ibGraph).setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
                         if (!liveDataThread.isAlive())
