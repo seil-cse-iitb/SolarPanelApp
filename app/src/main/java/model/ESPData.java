@@ -44,7 +44,7 @@ public class ESPData implements Serializable {
     private ESPData(){
 
     }
-    public static ESPData buildESPData(String line) {
+    public static ESPData   buildESPData(String line) {
         String[] split = line.split(",");
         ESPData espData = new ESPData();
         int length = fieldIndexMap.size();
