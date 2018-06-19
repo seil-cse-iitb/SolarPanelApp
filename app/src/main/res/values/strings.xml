@@ -3,4 +3,30 @@
 
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string-array name="fieldName">
+        <item>sequence</item>
+        <item>MM</item>
+        <item>dd</item>
+        <item>hh</item>
+        <item>mm</item>
+        <item>ss</item>
+        <item>I1</item>
+        <item>V1</item>
+        <item>P1</item>
+        <item>I2</item>
+        <item>V2</item>
+        <item>P2</item>
+        <item>I3</item>
+        <item>V3</item>
+        <item>P3</item>
+        <item>I4</item>
+        <item>V4</item>
+        <item>P4</item>
+        <item>Vbat</item>
+        <item>Temp</item>
+        <item>Humid</item>
+        <item>UV</item>
+        <item>LW</item>
+        <item>IR</item>
+    </string-array>
 </resources>

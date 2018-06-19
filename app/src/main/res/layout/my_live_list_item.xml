@@ -3,58 +3,11 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="wrap_content"
+    android:padding="5dp">
 
-    <LinearLayout
-        android:id="@+id/ll"
+    <android.support.v7.widget.AppCompatCheckBox
+        android:id="@+id/cbESPName"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:padding="10dp">
-
-        <!--<ImageButton-->
-            <!--android:layout_width="40dp"-->
-            <!--android:layout_height="40dp"-->
-            <!--android:background="@android:color/transparent"-->
-            <!--android:scaleType="fitXY"-->
-            <!--android:id="@+id/ibGraph"-->
-            <!--app:srcCompat="@drawable/graph" />-->
-
-        <TextView
-            android:id="@+id/name"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="ESP Name"
-            android:layout_marginLeft="5dp"
-            android:layout_gravity="center"
-            android:textAppearance="?attr/textAppearanceListItem" />
-
-        <Spinner
-            android:id="@+id/spinner"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:layout_gravity="center"
-            />
-
-        <ImageButton
-            android:layout_width="70dp"
-            android:layout_height="70dp"
-            android:padding="10dp"
-            android:background="@android:color/transparent"
-            android:scaleType="fitXY"
-            android:id="@+id/ibGraph"
-            app:srcCompat="@drawable/graph" />
-
-    </LinearLayout>
-
-
-    <com.jjoe64.graphview.GraphView
-        android:id="@+id/graph"
-        android:layout_width="match_parent"
-        android:layout_below="@id/ll"
-        android:layout_height="200dip"
-        android:visibility="visible"
-        android:elevation="4dp"
-        android:layout_margin="5dp"/>
+        android:layout_height="wrap_content" />
 </RelativeLayout>
