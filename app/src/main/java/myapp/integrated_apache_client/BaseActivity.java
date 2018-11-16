@@ -46,6 +46,9 @@ public class BaseActivity extends AppCompatActivity {
                             case R.id.mainActivity:
                                 intent = new Intent(getApplicationContext(), MainActivity.class);
                                 break;
+                            case R.id.helpActivity:
+                                intent = new Intent(getApplicationContext(), HelpActivity.class);
+                                break;
                             default:
                                 return true;
                         }

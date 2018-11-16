@@ -7,5 +7,8 @@
         <item
             android:id="@+id/liveVisualisationActivity"
             android:title="Live Visualisation" />
+        <item
+            android:id="@+id/helpActivity"
+            android:title="Help" />
     </group>
 </menu>
