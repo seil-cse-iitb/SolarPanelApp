@@ -14,7 +14,7 @@ public class HelpActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         ListView instructions= (ListView) findViewById(R.id.instructions);
         ActionBar actionBar = getSupportActionBar();
-        actionBar.setTitle("Help");
+        actionBar.setTitle("Help ");
         String[] instructionsList = new String[]{
                 "1. During wifi mode, reach near the circuits as close as possible. Note - Wifi data transfer timing - 7 AM to 8 PM",
                 "2. Turn On the hotspot. Wait for 5 minutes(it will check for wifi once in 5 minutes)",
