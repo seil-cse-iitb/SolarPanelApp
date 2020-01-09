@@ -26,8 +26,13 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.ListIterator;
@@ -126,7 +131,8 @@ public class LiveVisualisation extends BaseActivity {
                                     while (true) {
                                         try {
                                             String line = br.readLine();
-//                                            makeToast(line);
+                                            makeToast(line);
+                                            storeLiveData(esp, line);
                                             ESPData espData = ESPData.buildESPData(line);
                                             esp.addDataPoint(espData);
                                             LineGraphSeries<DataPoint> series = seriesMap.get(esp.getMacAddress());
@@ -156,6 +162,28 @@ public class LiveVisualisation extends BaseActivity {
             }
         };
         lvEsp.setAdapter(ba);
+    }
+
+    public void storeLiveData(final ESP esp, final String line) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                SimpleDateFormat formatter = new SimpleDateFormat("dd_MMM");
+                formatter.setLenient(false);
+                Date today = new Date();
+                String date = formatter.format(today);
+                final String fileName = "/storage/emulated/0/Download/" + esp.getName() + "_" + date + "_" + esp.getMacAddress() + "_liveSolarData.txt";
+                final File file = new File(fileName);
+                try {
+                    FileWriter fw = new FileWriter(file,true);
+                    fw.append(line);
+                    fw.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+
     }
 
     @Override
