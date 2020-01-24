@@ -108,22 +108,23 @@ public class MainActivity extends BaseActivity {
             @Override
             public void onClick(View v) {
                 if (refreshThread != null && !refreshThread.isAlive())
-                    refreshThread.start();
-                else if (refreshThread == null) {
-                    refreshThread = new Thread(new Runnable() {
-                        @Override
-                        public void run() {
-                            while (true) {
-                                getListOfConnectedDevice();
-                                try {
-                                    Thread.sleep(5000);
-                                } catch (InterruptedException e) {
-                                    break;
+                    if (refreshThread != null && !refreshThread.isAlive())
+                        refreshThread.start();
+                    else if (refreshThread == null) {
+                        refreshThread = new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                while (true) {
+                                    getListOfConnectedDevice();
+                                    try {
+                                        Thread.sleep(5000);
+                                    } catch (InterruptedException e) {
+                                        break;
+                                    }
                                 }
                             }
-                        }
-                    });
-                }
+                        });
+                    }
             }
         });
         //logic to handle download button
@@ -173,9 +174,9 @@ public class MainActivity extends BaseActivity {
                                     @Override
                                     public void run() {
                                         HttpClient httpclient = new DefaultHttpClient();
-                                        String encodedDebugText="";
+                                        String encodedDebugText = "";
                                         try {
-                                         encodedDebugText= URLEncoder.encode(debugText,"UTF-8");
+                                            encodedDebugText = URLEncoder.encode(debugText, "UTF-8");
                                         } catch (UnsupportedEncodingException e) {
                                             e.printStackTrace();
                                         }
@@ -192,7 +193,8 @@ public class MainActivity extends BaseActivity {
                                             e.printStackTrace();
                                             makeToast("Debug request failed!! Name:" + esp.getName(), Toast.LENGTH_LONG);
                                         }
-                                        refreshThread.start();
+                                        if (refreshThread != null && !refreshThread.isAlive())
+                                            refreshThread.start();
                                     }
                                 }).start();
                             }
@@ -236,7 +238,8 @@ public class MainActivity extends BaseActivity {
                                                     e.printStackTrace();
                                                     makeToast("Delete Failed!! Name:" + esp.getName(), Toast.LENGTH_LONG);
                                                 }
-                                                refreshThread.start();
+                                                if (refreshThread != null && !refreshThread.isAlive())
+                                                    refreshThread.start();
                                             }
                                         }).start();
                                     }
@@ -244,7 +247,8 @@ public class MainActivity extends BaseActivity {
                                 .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
                                     @Override
                                     public void onClick(DialogInterface dialogInterface, int i) {
-                                        refreshThread.start();
+                                        if (refreshThread != null && !refreshThread.isAlive())
+                                            refreshThread.start();
 
                                     }
                                 }).show();
@@ -266,7 +270,8 @@ public class MainActivity extends BaseActivity {
             }
         };
         lvEsp.setAdapter(ba);
-        refreshThread.start();
+        if (refreshThread != null && !refreshThread.isAlive())
+            refreshThread.start();
     }
 
     Thread refreshThread = new Thread(new Runnable() {
@@ -369,7 +374,7 @@ public class MainActivity extends BaseActivity {
         } finally {
             try {
                 br.close();
-            } catch (IOException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }
