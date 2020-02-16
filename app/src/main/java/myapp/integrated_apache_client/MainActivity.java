@@ -40,7 +40,9 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
 import java.net.InetAddress;
@@ -186,12 +188,13 @@ public class MainActivity extends BaseActivity {
                                             HttpEntity entity = response.getEntity();
                                             if (entity != null) {
                                                 makeToast("Debug request sent!! Name:" + esp.getName(), Toast.LENGTH_LONG);
+                                                makeDialog(getStringFromInputStream(entity.getContent()));
                                             } else {
                                                 makeToast("Debug request failed!! Name:" + esp.getName(), Toast.LENGTH_LONG);
                                             }
                                         } catch (Exception e) {
                                             e.printStackTrace();
-                                            makeToast("Debug request failed!! Name:" + esp.getName(), Toast.LENGTH_LONG);
+                                            makeToast("Debug request failed!! Name:" + esp.getName()+" Exception: "+e.getMessage(), Toast.LENGTH_LONG);
                                         }
                                         if (refreshThread != null && !refreshThread.isAlive())
                                             refreshThread.start();
@@ -287,7 +290,15 @@ public class MainActivity extends BaseActivity {
             }
         }
     });
-
+    public static String getStringFromInputStream(InputStream inputStream) throws IOException
+    {
+        BufferedReader r = new BufferedReader(new InputStreamReader(inputStream));
+        StringBuilder total = new StringBuilder();
+        for (String line; (line = r.readLine()) != null; ) {
+            total.append(line).append('\n');
+        }
+        return total.toString();
+    }
     private String getDynamicName(ESP esp) throws IOException {
         if (esp.isDynamicName()) return esp.name;
         String dynamicName = null;

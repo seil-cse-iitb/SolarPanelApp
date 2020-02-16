@@ -1,5 +1,6 @@
 package myapp.integrated_apache_client;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -7,10 +8,17 @@ import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 import android.widget.Toast;
+
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
 
 import java.util.ArrayList;
 
@@ -84,6 +92,18 @@ public class BaseActivity extends AppCompatActivity {
             @Override
             public void run() {
                 Toast.makeText(BaseActivity.this, str, Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+    protected void makeDialog(final String str) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                new AlertDialog.Builder(BaseActivity.this)
+                        .setTitle("Debug response")
+                        .setMessage(str)
+                        .setIcon(android.R.drawable.ic_dialog_alert)
+                        .show();
             }
         });
     }
