@@ -1,6 +1,5 @@
 package myapp.integrated_apache_client;
 
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -13,12 +12,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 import android.widget.Toast;
-
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.DefaultHttpClient;
 
 import java.util.ArrayList;
 
@@ -56,6 +49,9 @@ public class BaseActivity extends AppCompatActivity {
                                 break;
                             case R.id.helpActivity:
                                 intent = new Intent(getApplicationContext(), HelpActivity.class);
+                                break;
+                            case R.id.mapsActivity:
+                                intent = new Intent(getApplicationContext(), MapsActivity.class);
                                 break;
                             default:
                                 return true;

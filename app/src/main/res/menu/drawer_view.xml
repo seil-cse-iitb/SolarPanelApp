@@ -10,5 +10,8 @@
         <item
             android:id="@+id/helpActivity"
             android:title="Help" />
+        <item
+            android:id="@+id/mapsActivity"
+            android:title="Map Activity" />
     </group>
 </menu>

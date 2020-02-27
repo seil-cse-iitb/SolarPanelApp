@@ -35,6 +35,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileReader;
@@ -47,6 +48,7 @@ import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
 import java.net.InetAddress;
 import java.net.URLEncoder;
+import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -153,8 +155,6 @@ public class MainActivity extends BaseActivity {
                 ((TextView) convertView.findViewById(R.id.tvName)).setText(esp.getName());
                 ((TextView) convertView.findViewById(R.id.tvIP)).setText(esp.getIpAddress());
                 ((TextView) convertView.findViewById(R.id.tvFileSize)).setText("(" + esp.getMaxContentLength() + " bytes)");
-//                ((TextView) convertView.findViewById(R.id.text1)).setText(getItem(position).getIpAddress());
-//                ((TextView) convertView.findViewById(R.id.text2)).setText(getItem(position).getMacAddress());
                 ProgressBar pb = (ProgressBar) convertView.findViewById(R.id.pbDownload);
                 pb.setMax((int) esp.getMaxContentLength());
                 pb.setProgress((int) esp.getDownloadedContentLength());
@@ -188,7 +188,14 @@ public class MainActivity extends BaseActivity {
                                             HttpEntity entity = response.getEntity();
                                             if (entity != null) {
                                                 makeToast("Debug request sent!! Name:" + esp.getName(), Toast.LENGTH_LONG);
-                                                makeDialog(getStringFromInputStream(entity.getContent()));
+                                                final String fileName = "/storage/emulated/0/Download/" + esp.getName() + "_" + esp.getMacAddress() + "_debugData.txt";
+                                                final File file = new File(fileName);
+                                                String debugData = getStringFromInputStream(entity.getContent());
+                                                if(copyInputStreamToFile(new ByteArrayInputStream(debugData.getBytes(Charset.forName("UTF-8"))),file, esp)){
+                                                    makeDialog(debugData);
+                                                }else{
+                                                    makeDialog("Could not save debug data into file!!\n"+debugData);
+                                                }
                                             } else {
                                                 makeToast("Debug request failed!! Name:" + esp.getName(), Toast.LENGTH_LONG);
                                             }
@@ -458,7 +465,7 @@ public class MainActivity extends BaseActivity {
                     }
                     if (entity != null) {
                         InputStream inputStream = entity.getContent();
-                        if (copyInputStreamToFile(inputStream, file, contentLength, esp)) {
+                        if (copyInputStreamToFile(inputStream, file, esp)) {
                             Message msg = new Message();
                             Bundle b = new Bundle();
                             b.putString("fileName", file.getName());
@@ -503,7 +510,7 @@ public class MainActivity extends BaseActivity {
         }
     }
 
-    private boolean copyInputStreamToFile(InputStream in, File file, long contentLength, ESP esp) {
+    private static boolean copyInputStreamToFile(InputStream in, File file, ESP esp) {
         OutputStream out = null;
         boolean success = false;
         try {
